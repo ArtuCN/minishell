@@ -6,7 +6,7 @@
 /*   By: aconti <aconti@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 15:44:34 by ciusca            #+#    #+#             */
-/*   Updated: 2024/05/16 18:31:18 by aconti           ###   ########.fr       */
+/*   Updated: 2024/05/16 18:46:59 by aconti           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,33 +58,24 @@ int put_this(t_shell *shell, t_cmd *cmd_table, char type)
 	{
 		cmd_table->command = token->index[i];
 		cmd_table->cmd_arg = ft_calloc(sizeof(char *), 2 + 1);
+		if (!cmd_table->cmd_arg)
+			return (0);
 		cmd_table->cmd_arg[0] = token->index[i];
 		if (token->index[i + 1])
 			cmd_table->cmd_arg[1] = token->index[i + 1];
 	}
 	token->tokens[i] = 'X';
-	// if (token->tokens[i + 1])
-	// 	token->tokens[i + 1] = 'X';
-	// while (token->tokens[++i])
-	// {
-	// 	if (token->tokens[i] == 'C')
-	// 		break ;
-	// 	else if (token->tokens[i] != 'S')
-	// 	{
-	// 		cmd_table.red->redir = token->index[i];
-	// 		token->tokens[i] = 'X';
-	// 		cmd_table.red->file = token->index[i + 1];
-	// 		token->tokens[i + 1] = 'X';
-	// 	}
-	// }
+	if (token->tokens[i + 1])
+		token->tokens[i + 1] = 'X';
 	return (1);
 }
 
 int	check_tokens(t_shell *shell, t_cmd *cmd_table, char *input_args)
 {
 	int	i;
-	static int	j = 0;
+	int	j;
 	
+	j = 0;
 	i = -1;
 	while (input_args[++i])
 	{
@@ -145,6 +136,7 @@ int	init_cmd_table(t_shell *shell)
 	collect_garbage(shell, 0, input_args);
 	printf("1 %s\n", shell->tokens->tokens);
 	printf("1 %s %s \n", shell->cmd_table[0].cmd_arg[0], shell->cmd_table[0].cmd_arg[1]);
+	printf("1 %s %s \n", shell->cmd_table[1].cmd_arg[0], shell->cmd_table[1].cmd_arg[1]);
 	printf("1 %s %s \n", shell->cmd_table[1].cmd_arg[0], shell->cmd_table[1].cmd_arg[1]);
 	return (1);
 }
