@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ciusca <ciusca@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nromito <nromito@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/27 16:26:12 by nromito           #+#    #+#             */
-/*   Updated: 2024/05/13 15:27:01 by ciusca           ###   ########.fr       */
+/*   Updated: 2024/04/30 10:21:10 by nromito          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,33 +24,27 @@ char	*ft_readline(char *str)
 	return (input);
 }
 
+
 int	main(int argc, char **argv, char **envp)
 {
-	t_shell		shell;
-
-	init_structs(&shell);
-	shell.arrow = ft_calloc(sizeof(char*), ft_strlen(GREEN_ARROW) + 1);
-	collect_garbage(&shell, shell.arrow, 0);
-	shell.arrow = GREEN_ARROW;
-	(void)argc;
-	(void)argv;
+	t_shell	shell;
+	//char	*input;
+	//init shell;
 	shell.envp = envp;
+	if (argv[1])
+		argc = 2;
+	argc++;
 	while(1)
 	{
-		get_signal();
-		printf("%s", shell.arrow);
-		shell.arrow = GREEN_ARROW;
-		shell.input = ft_readline(MINISHELL);
-		if (!shell.input)
-			close_shell(&shell);
-		collect_garbage(&shell, shell.input, 0);
-		get_path(&shell);
+		//todo: garbage collector
+		shell.input = ft_readline("<minishell> ");
+		find_path(&shell);
 		if (shell.input)
 		{
-			lexer(&shell);			
-			if (!parsing(&shell))
-				shell.arrow = RED_ARROW;
+			lexer(&shell);
+			//expander
+			//executor
 		}
+		//se input e' null semplicemente ti riparte il while
 	}
-
 }

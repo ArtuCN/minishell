@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: aconti <aconti@student.42.fr>              +#+  +:+       +#+         #
+#    By: nromito <nromito@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/05/07 17:01:15 by ciusca            #+#    #+#              #
-#    Updated: 2024/05/15 13:01:18 by aconti           ###   ########.fr        #
+#    Created: 2024/04/27 16:23:10 by nromito           #+#    #+#              #
+#    Updated: 2024/04/29 15:53:30 by nromito          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,22 +17,17 @@ LIBFT = libft/libft.a
 
 HEADERS = headers/minishell.h
 
-PROTECTED_FUNC = protected_func/protected_functions.c
-CLOSING = close_and_free/close_shell.c
 BUILT_IN = built-in/echo.c
 EXECUTOR = executor/exec.c
-EXPANDER = expander/exp.c 
-PARSER = parser/parsing.c parser/tokenizer.c parser/cmd_table.c parser/fill_cmd_table.c
-LEXER = lexer/readline.c lexer/lexer_checker.c
-UTILS = utils/utils.c utils/utils2.c
-SIGNAL = signals/signals.c
+EXPANDER = expander/exp.c
+PARSER = parser/parsing.c
+LEXER = lexer/readline.c
+UTILS = utils/utils.c
 MAIN	= minishell.c
 
-SRCS = $(addprefix src/, $(MAIN) $(CLOSING) $(SIGNAL) ${BUILT_IN} $(PROTECTED_FUNC) ${EXECUTOR} ${EXPANDER} ${PARSER} ${LEXER} ${UTILS})
+SRCS = $(addprefix src/, $(MAIN) ${BUILT_IN} ${EXECUTOR} ${EXPANDER} ${PARSER} ${LEXER} ${UTILS})
 
 OBJS = ${SRCS:.c=.o}
-
-SUPRRESSION = @valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=ingore_readline.supp -s ./minishell
 
 COMPILE = cc -Wall -Wextra -Werror -g 
 
@@ -52,28 +47,26 @@ all: ${NAME}
 ${NAME}: ${OBJS} ${HEADERS}
 		make -C ${LIBFT_PATH}
 		$(COMPILE) $(OBJS) -o $(NAME) $(LIBFT) -lreadline
-		@echo $(MAGENTA) "  __  __ _____ _   _ _____  _____ _    _ ______ _      _       " $(NONE)
-		@echo $(RED)    " |  \/  |_   _| \ | |_   _|/ ____| |  | |  ____| |    | |      " $(NONE)
-		@echo $(YELLOW) " | \  / | | | |  \| | | | | (___ | |__| | |__  | |    | |      " $(NONE)
-		@echo $(GREEN)  " | |\/| | | | |     | | |  \___ \|  __  |  __| | |    | |      " $(NONE)
-		@echo $(CYAN)   " | |  | |_| |_| |\  |_| |_ ____) | |  | | |____| |____| |____  " $(NONE)
-		@echo $(BLUE)   " |_|  |_|_____|_| \_|_____|_____/|_|  |_|______|______|______| " $(NONE)
-		@echo $(WHITE)  "                                                               " $(NONE)
+		@echo "\n"
+		@echo "  __  __ _____ _   _ _____  _____ _    _ ______ _      _       "
+		@echo " |  \/  |_   _| \ | |_   _|/ ____| |  | |  ____| |    | |      "
+		@echo " | \  / | | | |  \| | | | | (___ | |__| | |__  | |    | |      "
+		@echo " | |\/| | | | |     | | |  \___ \|  __  |  __| | |    | |      "
+		@echo " | |  | |_| |_| |\  |_| |_ ____) | |  | | |____| |____| |____  "
+		@echo " |_|  |_|_____|_| \_|_____|_____/|_|  |_|______|______|______| "
+		@echo "                                                               "
+		@echo "                                                               "
 
-sup: all
-		@valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=ignore_readline.supp -s ./minishell
 clean:
 		@rm -rf $(OBJS)
-		@make -C $(LIBFT_PATH) clean
-		@echo $(GREEN)"Successfully cleaned!" $(NONE)
+		@make -C $(LIBFT_PATH)
+		@echo $(RAINBOW)"Successfully cleaned!"
 
 fclean: clean
 		@rm -rf $(NAME)
-		@make -C $(LIBFT_PATH) fclean
-		@echo $(CYAN)"Successfully Fcleaned!" $(NONE)
+		@make -C $(LIBFT)
+		@echo $(RAINBOW)"Successfully Fcleaned!"
 
 re: fclean all
 
 .PHONY: all clean fclean
-
-.SILENT:
