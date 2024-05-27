@@ -3,47 +3,115 @@
 /*                                                        :::      ::::::::   */
 /*   parsing.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nromito <nromito@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ciusca <ciusca@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/27 16:54:36 by nromito           #+#    #+#             */
-/*   Updated: 2024/04/27 20:16:08 by nromito          ###   ########.fr       */
+/*   Updated: 2024/05/27 16:02:25 by ciusca           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../headers/minishell.h"
 
-void	free_matrix(char **mat)
+int	parse_pipe(t_shell *shell)
+{
+	t_token	*token;
+	int		i;
+
+	token = shell->tokens;
+	i = -1;
+	while (token->tokens[++i])
+	{
+		if (token->tokens[i] == 'P')
+		{
+			if (i == 0)
+				return (ft_error(shell, SYNTAX, token->index[i]));
+			else if (!token->tokens[i + 1])
+				return (ft_error(shell, SYNTAX, "\\n"));
+		}
+	}
+	return (1);
+}
+
+char	*set_x(char *str)
 {
 	int	i;
 
 	i = -1;
-	while (mat[++i])
-		free(mat[i]);
-	free(mat);
+	while (str[++i])
+	{
+		if (is_redir(str[i]))
+		{
+			str[i] = 'X';
+			str[i + 1] = 'X';
+		}
+	}
+	return (str);
 }
 
-int	find_path(t_shell *shell)
+int	split_pipes(t_shell *shell)
 {
-	char 	*path;
-	char	*temp;
+	t_token	*token;
+	char	*temp_token;
+	int		i;
+	int		found;
+
+	found = 0;
+	token = shell->tokens;
+	temp_token = ft_strdup(token->tokens);
+	i = -1;
+	temp_token = set_x(temp_token);
+	i = -1;
+	while (temp_token[++i])
+	{
+		if (temp_token[i] == 'C')
+			found = 1;
+		if (temp_token[i] == 'P')
+			found = 0;
+		if (temp_token[i] == 'S' && !found)
+		{
+			free(temp_token);
+			return (ft_error(shell, COMMAND, token->index[i]));
+		}
+	}
+	free(temp_token);
+	return (1);
+}
+
+int	parse_input(t_shell *shell)
+{
+	t_token	*token;
 	int		i;
 
+	token = shell->tokens;
 	i = -1;
-	shell->mat_input = ft_split(shell->input, 32); //splitto tutto l'imput in una matrice
-	if (!shell->mat_input)
+	if (!parse_pipe(shell))
 		return (0);
-	path = getenv("PATH");
-	shell->path_env = ft_split(path, ':');
-	if (!shell->path_env)
-		return (0);
-	temp = ft_strdup(shell->path_env[0]);
-	shell->path_env[0] = ft_strtrim(temp, "PATH="); // crea la path da passare all'access
-	free(temp);
-	while (shell->path_env[++i])
+	while (token->tokens[++i])
 	{
-		temp = ft_strdup(shell->path_env[i]);
-		shell->path_env[i] = ft_strjoin(temp, "/");  // add "/" access function
-		free(temp);
+		if (is_redir(token->tokens[i]))
+		{
+			if (token->tokens[i + 1] == 'P')
+				return (ft_error(shell, SYNTAX, token->index[i + 1]));
+			else if (!token->tokens[i + 1])
+				return (ft_error(shell, SYNTAX, "\\n"));
+			else if (is_redir(token->tokens[i + 1]))
+				return (ft_error(shell, SYNTAX, token->index[i + 1]));
+		}
+		else if (token->tokens[i] == 'P' && token->tokens[i + 1] == 'P')
+			return (ft_error(shell, SYNTAX, token->index[i + 1]));
 	}
+	if (!parse_redirs(shell))
+		return (0);
+	return (split_pipes(shell));
+}
+
+int	parsing(t_shell *shell)
+{
+	if (!tokenizer(shell))
+		return (0);
+	if (!parse_input(shell))
+		return (0);
+	if (!init_cmd_table(shell))
+		return (0);
 	return (1);
 }

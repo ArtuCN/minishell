@@ -3,67 +3,62 @@
 /*                                                        :::      ::::::::   */
 /*   ft_itoa.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nromito <nromito@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ciusca <cristianiusca13@gmail.com>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/10/17 12:29:28 by nromito           #+#    #+#             */
-/*   Updated: 2023/10/29 16:42:35 by nromito          ###   ########.fr       */
+/*   Created: 2023/10/18 16:45:44 by ciusca            #+#    #+#             */
+/*   Updated: 2023/10/30 20:57:54 by ciusca           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
+#include <stdio.h>
+#include <stddef.h>
 
-char	*recursive(long long i, long long j, char *digit)
+int	n_len(long n)
 {
-	if (i < 0)
-	{
-		i = -i;
-		digit[0] = '-';
-	}
-	if (i > 0)
-	{
-		digit[--j] = 48 + (i % 10);
-		recursive((i / 10), j, digit);
-	}
-	return (digit);
-}
-
-int	count_num(long long n)
-{
-	short	i;
+	int	i;
 
 	i = 0;
 	if (n < 0)
 	{
-		n = -n;
-		i++;
+		n *= -1;
+		i ++;
 	}
+	if (n == 0)
+		return (1);
 	while (n > 0)
 	{
-		n = n / 10;
-		i++;
+		n /= 10;
+		i ++;
 	}
 	return (i);
 }
 
 char	*ft_itoa(int n)
 {
-	char		*digit;
-	long long	nb;
-	long long	j;
+	char	*str;
+	long	cifra;
+	int		len;
 
-	nb = n;
-	j = count_num(nb);
-	if (nb == 0 || nb == -0)
-		return (ft_strdup("0"));
-	digit = malloc(sizeof(char) * (j + 1));
-	if (digit == NULL)
+	cifra = n;
+	len = n_len(cifra);
+	str = (char *) malloc(sizeof(char) * len + 1);
+	if (!str)
 		return (NULL);
-	if (nb < 0)
+	len -= 1;
+	if (cifra < 0)
 	{
-		nb = -nb;
-		digit[0] = '-';
+		cifra *= -1;
+		str[0] = '-';
 	}
-	digit = recursive(nb, j, digit);
-	digit[j] = '\0';
-	return (digit);
+	if (cifra == 0)
+		str[0] = '0';
+	str[len + 1] = 0;
+	while (cifra > 0)
+	{
+		str[len] = cifra % 10 + 48;
+		cifra /= 10;
+		len --;
+	}
+	return (str);
 }

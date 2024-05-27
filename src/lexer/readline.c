@@ -3,52 +3,120 @@
 /*                                                        :::      ::::::::   */
 /*   readline.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nromito <nromito@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ciusca <ciusca@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/27 16:52:55 by nromito           #+#    #+#             */
-/*   Updated: 2024/04/30 12:24:37 by nromito          ###   ########.fr       */
+/*   Updated: 2024/05/23 16:37:43 by ciusca           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../headers/minishell.h"
 
-void	tokenizer(char *tokens)
+int	find_builtins(char *cmd)
 {
-	printf("tokens:\n");
-	for (int i = 0; tokens[i]; i++)
-		printf("%c ", tokens[i]);
-	printf("\n");
+	int	len;
+
+	len = ft_strlen(cmd);
+	if (!ft_strncmp(cmd, "exit", len))
+		return (1);
+	else if (!ft_strncmp(cmd, "unset", len))
+		return (1);
+	else if (!ft_strncmp(cmd, "export", len))
+		return (1);
+	else if (!ft_strncmp(cmd, "cd", len))
+		return (1);
+	return (0);
 }
 
-int	find_cmd(t_shell *shell, char *cmd)
+int	find_cmd_path(t_shell *shell, char *cmd, int pos)
 {
 	int		i;
-	char	*temp_cmd;
 
 	i = -1;
+	if (!cmd[0])
+		return (0);
+	if (find_builtins(cmd))
+		return (1);
+	if (pos && is_redir(shell->tokens->tokens[pos - 1]))
+		return (0);
 	while (shell->path_env[++i])
 	{
-		temp_cmd = ft_strjoin(shell->path_env[i], cmd);
-		if (!(access(temp_cmd, X_OK)))
+		if (!ft_strchr(cmd, '/'))
+			shell->cmd_name = ft_strjoin(shell->path_env[i], cmd);
+		else
+			shell->cmd_name = ft_strdup(cmd);
+		collect_garbage(shell, shell->cmd_name, 0);
+		if (access_p(shell->cmd_name, X_OK) == 0)
 			return (1);
 	}
 	return (0);
 }
 
-char *lexer(t_shell *shell)
+int	lexer(t_shell *shell)
 {
-	char 	*tokens;
-	int		i;
+	int		words;
+	t_token	*token;
 
-	tokens = ft_calloc(sizeof(char *), 10);
-	i = -1;
-	while (shell->mat_input[++i])
+	token = shell->tokens;
+	words = count_wrds(shell);
+	if (words == 0)
+		return (0);
+	token->flag = 0;
+	token->wrd = 0;
+	token->index = ft_calloc(sizeof (char *), words + 1);
+	if (!token->index)
+		return (0);
+	collect_garbage(shell, 0, token->index);
+	token->flag = ft_calloc(sizeof(char *), words + 1);
+	collect_garbage(shell, token->flag, 0);
+	checker(shell, token, words);
+	printf("flag %s\n", token->flag);
+	return (1);
+}
+
+void	checker(t_shell *shell, t_token *token, int words)
+{
+	int		i;
+	int		k;
+
+	k = 0;
+	i = 0;
+	token->wrd = 0;
+	while (shell->input[i] == 32)
+		i++;
+	token->start = i - 1;
+	while (token->wrd < words)
 	{
-		if (find_cmd(shell, shell->mat_input[i]))
-			tokens[i] = 'C';
+		if (shell->input[i] == SQ || shell->input[i] == DQ)
+			i = quotes_reader(shell, i, &k);
+		else if ((shell->input[i] == SPACE) || (shell->input[i] == '\0')
+			|| (shell->input[i] == PIPE) || (shell->input[i] == '>')
+			|| (shell->input[i] == '<'))
+			setup_index(shell, token, &i);
 		else
-			tokens[i] = 'S';
+			i++;
 	}
-	tokenizer(tokens);
-	return (0);
+	token->index[token->wrd] = NULL;
+	print_matrix(token->index);
+}
+
+void	setup_index(t_shell *shell, t_token *token, int *i)
+{
+	if (shell->input[(*i)] == PIPE
+		|| shell->input[(*i)] == '>' || shell->input[(*i)] == '<')
+		choose_if(shell, token, &(*i));
+	else if (shell->input[(*i)] != PIPE
+		&& shell->input[(*i)] != '>' && shell->input[(*i)] != '<')
+		create_word(shell, token, &(*i));
+	if (shell->input[(*i)] == '<')
+		create_minor(shell, token, &(*i));
+	if (shell->input[(*i)] == '>')
+		create_major(shell, token, &(*i));
+	if (shell->input[(*i)] == PIPE)
+		create_pipe(shell, token, &(*i));
+	if (shell->input[(*i)] == SPACE)
+		while (shell->input[(*i)] == SPACE && shell->input[(*i)] != '\0')
+			(*i)++;
+	if (shell->input[(*i)] != '\0')
+		token->start = (*i) - 1;
 }
