@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   echo.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ciusca <ciusca@student.42.fr>              +#+  +:+       +#+        */
+/*   By: aconti <aconti@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/04/27 20:00:17 by nromito           #+#    #+#             */
-/*   Updated: 2024/05/22 18:12:41 by ciusca           ###   ########.fr       */
+/*   Created: 2024/04/27 20:00:17 by adonato           #+#    #+#             */
+/*   Updated: 2024/07/09 15:48:31 by aconti           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ int	n_flag(char **echo_mat)
 	return (pos);
 }
 
-void	ft_echo(char **echo_mat)
+int	ft_echo(char **echo_mat)
 {
 	int	pos;
 
@@ -65,6 +65,7 @@ void	ft_echo(char **echo_mat)
 			printf("%s", echo_mat[pos]);
 		}
 	}
+	return (1);
 }
 
 int	ft_strcmp(char *s1, char *s2)

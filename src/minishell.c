@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ciusca <ciusca@student.42.fr>              +#+  +:+       +#+        */
+/*   By: aconti <aconti@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/04/27 16:26:12 by nromito           #+#    #+#             */
-/*   Updated: 2024/05/27 15:23:56 by ciusca           ###   ########.fr       */
+/*   Created: 2024/04/27 16:26:12 by adonato           #+#    #+#             */
+/*   Updated: 2024/07/09 16:39:10 by aconti           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,46 @@
 
 int	g_sig_type;
 
-void	set_arrow(t_shell *shell)
+int	check_sign(const char *str, int *i, int *is_neg)
 {
+	int	neg;
+
+	neg = 1;
+	if (str[*i] == '-' || str[*i] == '+')
+	{
+		if (str[(*i)++] == '-')
+		{
+			*is_neg = 1;
+			neg *= -1;
+		}
+	}
+	return (neg);
+}
+
+char	*set_prompt(t_shell *shell)
+{
+	char	*dir;
+	char	*prompt;
+	char	*temp;
+
+	temp = getcwd(0, 0);
+	dir = ft_strdup(ft_strrchr(temp, '/'));
+	free(temp);
 	if (!shell->error)
-		shell->arrow = GREEN_ARROW;
-	else
-		shell->arrow = RED_ARROW;
-	printf("%s", shell->arrow);
+	{
+		temp = ft_strjoin(dir, RESET SECOND_PART);
+		free(dir);
+		prompt = ft_strjoin(MINISHELL, temp);
+		free(temp);
+		collect_garbage(shell, prompt, 0);
+		return (prompt);
+	}
+	temp = ft_strjoin(dir, RESET SECOND_RED);
+	free(dir);
+	prompt = ft_strjoin(RED_MINISHELL, temp);
+	free(temp);
+	collect_garbage(shell, prompt, 0);
+	return (prompt);
 }
 
 char	*ft_readline(char *str)
@@ -30,46 +63,54 @@ char	*ft_readline(char *str)
 	input = readline(str);
 	if (!input)
 		return (0);
-	add_history(input);
 	rl_on_new_line();
 	return (input);
+}
+
+int	handle_close(t_shell *shell, int saved_in)
+{
+	if (!shell->input)
+	{
+		if (g_sig_type == SIG_C)
+			shell->error = 130;
+		close(saved_in);
+		close_shell(shell);
+	}
+	else if (g_sig_type == 19)
+	{
+		shell->error = 130;
+		g_sig_type = 0;
+		dup2(saved_in, STDIN_FILENO);
+		close(saved_in);
+	}
+	return (1);
 }
 
 int	main(int argc, char **argv, char **envp)
 {
 	t_shell		shell;
+	int			saved_in;
 
 	init_structs(&shell, argc, argv, envp);
+	g_sig_type = 0;
 	while (JESUS)
 	{
-		//printf("sig type = %d\n", sig_type);
-		g_sig_type = 0;
-		//printf("shell.input = %	s\n", shell.input);
 		get_signal();
-		set_arrow(&shell);
-		shell.input = ft_readline(MINISHELL);
-		if (!shell.input)
-			close_shell(&shell);
-		//{
-		//	printf("entro qui\n");
-		//}
-		//printf("shell.input = %s\n", shell.input);
-		//collect_garbage(&shell, shell.input, 0);
-		//free(shell.input);
-		get_path(&shell);
+		saved_in = dup(STDIN_FILENO);
+		shell.input = ft_readline(set_prompt(&shell));
+		handle_close(&shell, saved_in);
+		if (!parse_open(&shell))
+			continue ;
+		update_history(shell.input);
+		collect_garbage(&shell, shell.input, 0);
+		close(saved_in);
 		if (shell.input)
 		{
-			if (lexer(&shell) && parsing(&shell) && executor(&shell))
-			{
-				if (shell.cmd_table)
-					free_cmd_table(&shell);
+			if (lexer(&shell) && parsing(&shell, saved_in) && executor(&shell))
 				shell.error = 0;
-				free(shell.input);
-				continue ;
-			}
-			free(shell.input);
 			if (shell.cmd_table)
 				free_cmd_table(&shell);
 		}
+		delete_heredoc();
 	}
 }

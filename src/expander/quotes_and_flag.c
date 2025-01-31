@@ -3,30 +3,25 @@
 /*                                                        :::      ::::::::   */
 /*   quotes_and_flag.c                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nromito <nromito@student.42.fr>            +#+  +:+       +#+        */
+/*   By: aconti <aconti@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/05/23 10:22:43 by nromito           #+#    #+#             */
-/*   Updated: 2024/05/25 18:11:28 by nromito          ###   ########.fr       */
+/*   Created: 2024/05/23 10:22:43 by adonato           #+#    #+#             */
+/*   Updated: 2024/07/09 15:48:31 by aconti           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../headers/minishell.h"
 
-void	is_heredoc(t_shell *shell, t_token *token, char *input, int j)
+char	assign_flag(t_token *token, int j, int i)
 {
-	printf("j = %d\n", j);
-	if (j >= 1 && input[j - 1] != '$' && input[j + 1] != '$')
-		expand_value(shell, token, input, j);
-	else if (input[0] == '$' && (input[1] != '$' && input[2] != '$'))
-		expand_value(shell, token, input, j);
-	else
-		return ;
-	if (token->wrd >= 1 && token->index[token->wrd - 1][0] == '<'
-		&& token->index[token->wrd - 1][1] == '<'
-		&& token->index[token->wrd - 1][2] == '\0'
-		&& token->flag[token->wrd - 1] == '0')
-		j++;
-	expand_value(shell, token, input, j);
+	if (token->index[token->wrd][i] == '>'
+		|| token->index[token->wrd][i] == '<')
+		token->flag[token->wrd] = '1';
+	else if (j == 5)
+		token->flag[token->wrd] = '2';
+	else if (token->index[token->wrd][i] == '\0')
+		token->flag[token->wrd] = '0';
+	return (token->flag[token->wrd]);
 }
 
 char	*check_flag(t_token *token)
@@ -44,17 +39,12 @@ char	*check_flag(t_token *token)
 			while (token->index[token->wrd][++i] != '>'
 				&& token->index[token->wrd][i] != '<'
 				&& token->index[token->wrd][i])
-				j = 5;
+				;
+			j = 5;
 			break ;
 		}
 	}
-	if (token->index[token->wrd][i] == '>'
-		|| token->index[token->wrd][i] == '<')
-		token->flag[token->wrd] = '1';
-	else if (j == 5)
-		token->flag[token->wrd] = '2';
-	else if (token->index[token->wrd][i] == '\0')
-		token->flag[token->wrd] = '0';
+	token->flag[token->wrd] = assign_flag(token, j, i);
 	return (token->flag);
 }
 
@@ -92,6 +82,8 @@ char	*remove_quotes(t_shell *shell, t_token *token, int i)
 
 	j = 0;
 	temp = ft_calloc(sizeof(char *), i + 1);
+	if (!temp)
+		return (0);
 	i = -1;
 	while (token->index[token->wrd][++i])
 	{
@@ -105,6 +97,8 @@ char	*remove_quotes(t_shell *shell, t_token *token, int i)
 				temp[j++] = token->index[token->wrd][i];
 		else if (token->index[token->wrd][i])
 			temp[j++] = token->index[token->wrd][i];
+		if (!token->index[token->wrd][i])
+			break ;
 	}
 	collect_garbage(shell, token->index[token->wrd], 0);
 	return (temp);

@@ -3,14 +3,51 @@
 /*                                                        :::      ::::::::   */
 /*   parsing_utils.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ciusca <ciusca@student.42.fr>              +#+  +:+       +#+        */
+/*   By: aconti <aconti@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/05/20 18:27:50 by ciusca            #+#    #+#             */
-/*   Updated: 2024/05/27 11:53:30 by ciusca           ###   ########.fr       */
+/*   Created: 2024/05/20 18:27:50 by aconti            #+#    #+#             */
+/*   Updated: 2024/07/09 15:47:15 by aconti           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../headers/minishell.h"
+
+char	*get_executable(char *str)
+{
+	char	*temp;
+	char	*pathname;
+
+	temp = getcwd(NULL, 0);
+	pathname = ft_strjoin(temp, str);
+	free(temp);
+	return (pathname);
+}
+
+char	*get_pathname(t_shell *shell, char *str)
+{
+	int		i;
+	char	*pathname;
+
+	i = -1;
+	if ((str && !str[0]) || (str[0] == '.' && !str[1])
+		|| (str[0] == '.' && str[1] == '.'))
+		return (0);
+	while (shell->path_env[++i])
+	{
+		if (str[0] == '.' && str[1] == '/')
+			pathname = get_executable(str);
+		else if (ft_strchr(str, '/'))
+			pathname = ft_strdup(str);
+		else
+			pathname = ft_strjoin(shell->path_env[i], str);
+		if (!access(pathname, X_OK))
+			return (pathname);
+		free(pathname);
+	}
+	if (ft_strchr(str, '/') && !access(str, X_OK))
+		return (ft_strdup(str));
+	return (0);
+}
 
 int	get_path(t_shell *shell)
 {
@@ -19,10 +56,11 @@ int	get_path(t_shell *shell)
 	int		i;
 
 	i = -1;
-	path = getenv("PATH");
+	path = ft_getenv("PATH", shell);
 	shell->path_env = ft_split(path, ':');
 	if (!shell->path_env)
 		return (0);
+	free(path);
 	while (shell->path_env[++i])
 	{
 		temp = ft_strdup(shell->path_env[i]);
@@ -32,27 +70,6 @@ int	get_path(t_shell *shell)
 	}
 	collect_garbage(shell, 0, shell->path_env);
 	return (1);
-}
-
-void	print_cmd_table(t_shell *shell, int len)
-{
-	t_table	table;
-	int		i;
-	int		j;
-
-	i = -1;
-	printf("len %d\n", len);
-	while (++i < len)
-	{
-		table = shell->cmd_table[i];
-		j = -1;
-		printf("element = %s\n", table.command);
-		printf("pos = %d\n", table.pos);
-		printf("fd = %d\n", table.fd);
-		if (table.cmd)
-			while (table.cmd->cmd_arg[++j])
-				printf("[%d] args ---> %s\n", j, table.cmd->cmd_arg[j]);
-	}
 }
 
 int	is_redir(int c)

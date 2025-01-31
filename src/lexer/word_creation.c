@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   word_creation.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nromito <nromito@student.42.fr>            +#+  +:+       +#+        */
+/*   By: aconti <aconti@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/05/21 13:45:16 by nromito           #+#    #+#             */
-/*   Updated: 2024/05/23 10:17:43 by nromito          ###   ########.fr       */
+/*   Created: 2024/05/21 13:45:16 by adonato           #+#    #+#             */
+/*   Updated: 2024/07/09 15:48:31 by aconti           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,9 +20,8 @@ void	write_word(t_shell *shell, t_token *token, int r, int i)
 			copy_in_quotes(shell, token, &r, DQ);
 		else if (shell->input[token->start] == SQ)
 			copy_in_quotes(shell, token, &r, SQ);
-		else
-			if (shell->input[token->start] != '\0')
-				token->index[token->wrd][r++] = shell->input[token->start];
+		else if (shell->input[token->start])
+			token->index[token->wrd][r++] = shell->input[token->start];
 	}
 }
 
@@ -93,19 +92,19 @@ void	copy_in_quotes(t_shell *shell, t_token *token, int (*r), int quote)
 {
 	if (quote == DQ)
 	{
-		if (check_word(shell, token, DQ))
+		if (check_word(shell, token, DQ, r))
 			return ;
 		token->index[token->wrd][(*r)++] = shell->input[token->start - 1];
-		while (shell->input[token->start] != DQ)
+		while (shell->input[token->start] && shell->input[token->start] != DQ)
 			token->index[token->wrd][(*r)++] = shell->input[token->start++];
 		token->index[token->wrd][(*r)++] = shell->input[token->start];
 	}
 	else if (quote == SQ)
 	{
-		if (check_word(shell, token, SQ))
+		if (check_word(shell, token, SQ, r))
 			return ;
 		token->index[token->wrd][(*r)++] = shell->input[token->start - 1];
-		while (shell->input[token->start] != SQ)
+		while (shell->input[token->start] && shell->input[token->start] != SQ)
 			token->index[token->wrd][(*r)++] = shell->input[token->start++];
 		token->index[token->wrd][(*r)++] = shell->input[token->start];
 	}

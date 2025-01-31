@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   readline.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ciusca <ciusca@student.42.fr>              +#+  +:+       +#+        */
+/*   By: aconti <aconti@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/04/27 16:52:55 by nromito           #+#    #+#             */
-/*   Updated: 2024/05/23 16:37:43 by ciusca           ###   ########.fr       */
+/*   Created: 2024/04/27 16:52:55 by adonato           #+#    #+#             */
+/*   Updated: 2024/07/09 15:48:31 by aconti           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,16 +14,19 @@
 
 int	find_builtins(char *cmd)
 {
-	int	len;
-
-	len = ft_strlen(cmd);
-	if (!ft_strncmp(cmd, "exit", len))
+	if (!ft_strncmp(cmd, "exit", 5))
 		return (1);
-	else if (!ft_strncmp(cmd, "unset", len))
+	else if (!ft_strncmp(cmd, "unset", 6))
 		return (1);
-	else if (!ft_strncmp(cmd, "export", len))
+	else if (!ft_strncmp(cmd, "export", 7))
 		return (1);
-	else if (!ft_strncmp(cmd, "cd", len))
+	else if (!ft_strncmp(cmd, "cd", 3))
+		return (1);
+	else if (!ft_strncmp(cmd, "env", 4))
+		return (1);
+	else if (!ft_strncmp(cmd, "echo", 5))
+		return (1);
+	else if (!ft_strncmp(cmd, "pwd", 4))
 		return (1);
 	return (0);
 }
@@ -49,6 +52,8 @@ int	find_cmd_path(t_shell *shell, char *cmd, int pos)
 		if (access_p(shell->cmd_name, X_OK) == 0)
 			return (1);
 	}
+	if (!access(cmd, X_OK) && i == 0)
+		return (1);
 	return (0);
 }
 
@@ -57,10 +62,16 @@ int	lexer(t_shell *shell)
 	int		words;
 	t_token	*token;
 
+	split_redirs(shell);
+	get_path(shell);
 	token = shell->tokens;
 	words = count_wrds(shell);
 	if (words == 0)
+	{
+		if (g_sig_type == 3)
+			shell->error = 130;
 		return (0);
+	}
 	token->flag = 0;
 	token->wrd = 0;
 	token->index = ft_calloc(sizeof (char *), words + 1);
@@ -68,9 +79,10 @@ int	lexer(t_shell *shell)
 		return (0);
 	collect_garbage(shell, 0, token->index);
 	token->flag = ft_calloc(sizeof(char *), words + 1);
+	if (!token->flag)
+		return (0);
 	collect_garbage(shell, token->flag, 0);
 	checker(shell, token, words);
-	printf("flag %s\n", token->flag);
 	return (1);
 }
 
@@ -82,7 +94,7 @@ void	checker(t_shell *shell, t_token *token, int words)
 	k = 0;
 	i = 0;
 	token->wrd = 0;
-	while (shell->input[i] == 32)
+	while (shell->input[i] == SPACE || shell->input[i] == TAB)
 		i++;
 	token->start = i - 1;
 	while (token->wrd < words)
@@ -91,13 +103,12 @@ void	checker(t_shell *shell, t_token *token, int words)
 			i = quotes_reader(shell, i, &k);
 		else if ((shell->input[i] == SPACE) || (shell->input[i] == '\0')
 			|| (shell->input[i] == PIPE) || (shell->input[i] == '>')
-			|| (shell->input[i] == '<'))
+			|| (shell->input[i] == '<') || shell->input[i] == TAB)
 			setup_index(shell, token, &i);
 		else
 			i++;
 	}
 	token->index[token->wrd] = NULL;
-	print_matrix(token->index);
 }
 
 void	setup_index(t_shell *shell, t_token *token, int *i)
@@ -114,9 +125,10 @@ void	setup_index(t_shell *shell, t_token *token, int *i)
 		create_major(shell, token, &(*i));
 	if (shell->input[(*i)] == PIPE)
 		create_pipe(shell, token, &(*i));
-	if (shell->input[(*i)] == SPACE)
-		while (shell->input[(*i)] == SPACE && shell->input[(*i)] != '\0')
+	if (shell->input[(*i)] == SPACE || shell->input[*i] == TAB)
+		while (shell->input[(*i)]
+			&& (shell->input[(*i)] == SPACE || shell->input[*i] == TAB))
 			(*i)++;
-	if (shell->input[(*i)] != '\0')
+	if (shell->input[(*i)])
 		token->start = (*i) - 1;
 }

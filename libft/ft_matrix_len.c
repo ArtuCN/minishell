@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_matrix_len.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ciusca <ciusca@student.42.fr>              +#+  +:+       +#+        */
+/*   By: aconti <aconti@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/05/08 15:05:50 by ciusca            #+#    #+#             */
-/*   Updated: 2024/05/20 19:00:54 by ciusca           ###   ########.fr       */
+/*   Created: 2024/05/08 15:05:50 by aconti            #+#    #+#             */
+/*   Updated: 2024/07/09 15:47:15 by aconti           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,8 @@ int	matrix_len(char **mat)
 	int	i;
 
 	i = 0;
+	if (!mat)
+		return (0);
 	while (mat[i])
 		i++;
 	return (i);

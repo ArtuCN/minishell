@@ -3,17 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   libft.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ciusca <ciusca@student.42.fr>              +#+  +:+       +#+        */
+/*   By: aconti <aconti@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/10/19 19:12:56 by ciusca            #+#    #+#             */
-/*   Updated: 2024/05/27 15:18:19 by ciusca           ###   ########.fr       */
+/*   Created: 2023/10/19 19:12:56 by aconti            #+#    #+#             */
+/*   Updated: 2024/07/09 15:47:15 by aconti           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef LIBFT_H
 # define LIBFT_H
 # ifndef BUFFER_SIZE
-#  define BUFFER_SIZE 1
+#  define BUFFER_SIZE 5000
 # endif
 
 # include <stddef.h>
@@ -31,6 +31,7 @@ typedef struct s_list
 
 /* string functions */
 int		ft_atoi(const char *str);
+char	*ft_btrim(const char *str, const char *to_remove);
 char	*ft_strtrim(const char *s1, const char *set);
 char	*ft_substr(char const *s, unsigned int start, size_t len);
 char	*ft_strjoin(const char *s1, const char *s2);
@@ -56,6 +57,7 @@ int		ft_isdigit(int c);
 int		ft_isprint(int c);
 int		ft_tolower(int c);
 int		ft_toupper(int c);
+int		ft_isspace(int c);
 
 /* non standard functins */
 char	*ft_itoa(int n);
@@ -68,6 +70,7 @@ int		count_words(char *str);
 /* matrix functions */
 char	**ft_split(char const *s, char const c);
 int		matrix_len(char **mat);
+char	**ft_matrix_dup(char **matrix);
 void	free_matrix(char **mat);
 
 /* memory functions */

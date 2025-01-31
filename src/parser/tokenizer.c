@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   tokenizer.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ciusca <ciusca@student.42.fr>              +#+  +:+       +#+        */
+/*   By: aconti <aconti@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/05/07 13:59:01 by ciusca            #+#    #+#             */
-/*   Updated: 2024/05/27 15:25:53 by ciusca           ###   ########.fr       */
+/*   Created: 2024/05/07 13:59:01 by aconti            #+#    #+#             */
+/*   Updated: 2024/07/09 15:47:15 by aconti           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,17 +19,18 @@ int	set_token(t_shell *shell, t_token *token, int *i, int *command)
 		*command = 1;
 		token->tokens[*i] = 'C';
 	}
-	else if (!(ft_strncmp(token->index[*i], "<<", 3)) && token->flag[*i] == '0')
+	else if (!(ft_strncmp(token->index[*i], "<<", 2)) && token->flag[*i] == '0')
 		token->tokens[*i] = 'H';
-	else if (!(ft_strncmp(token->index[*i], ">>", 3)) && token->flag[*i] == '0')
+	else if (!(ft_strncmp(token->index[*i], ">>", 2)) && token->flag[*i] == '0')
 		token->tokens[*i] = 'A';
-	else if (!(ft_strncmp(token->index[*i], ">", 2)) && token->flag[*i] == '0')
+	else if (!(ft_strncmp(token->index[*i], ">", 1)) && token->flag[*i] == '0')
 		token->tokens[*i] = 'O';
-	else if (!(ft_strncmp(token->index[*i], "<", 2)) && token->flag[*i] == '0')
+	else if (!(ft_strncmp(token->index[*i], "<", 1)) && token->flag[*i] == '0')
 		token->tokens[*i] = 'I';
-	else if (!(ft_strncmp(token->index[*i], "||", 3)))
-		return (ft_error(shell, SYNTAX, token->index[*i]));
-	else if (token->index[*i][0] == '|')
+	else if ((ft_strncmp(token->index[*i], "||", 2) == 0
+			&& token->flag[*i] == '0'))
+		return (ft_error(shell, SYNTAX, "|"));
+	else if (token->index[*i][0] == '|' && token->flag[*i] == '0')
 	{
 		*command = 0;
 		token->tokens[*i] = 'P';
@@ -55,7 +56,6 @@ int	tokenizer(t_shell *shell)
 	while (token->index[++i])
 		if (!set_token(shell, token, &i, &command))
 			return (0);
-	printf("tokens = %s\n", token->tokens);
 	command = 0;
 	return (1);
 }

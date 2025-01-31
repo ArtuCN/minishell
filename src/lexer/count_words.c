@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   count_words.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nromito <nromito@student.42.fr>            +#+  +:+       +#+        */
+/*   By: aconti <aconti@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/05/21 13:40:12 by nromito           #+#    #+#             */
-/*   Updated: 2024/05/21 13:42:52 by nromito          ###   ########.fr       */
+/*   Created: 2024/05/21 13:40:12 by adonato           #+#    #+#             */
+/*   Updated: 2024/07/09 15:48:31 by aconti           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ int	check_quotes(t_shell *shell, int *i, int *words)
 		while (shell->input[++*i] != DQ && shell->input[*i])
 			;
 		if (shell->input[*i] == '\0')
-			return (0);
+			return (ft_putstr_fd("minishell: missing double quote\n", 1), 0);
 		if (shell->input[++*i] == '\0' || shell->input[*i] == PIPE
 			|| shell->input[*i] == '>' || shell->input[*i] == '<')
 			(*words)++;
@@ -29,7 +29,7 @@ int	check_quotes(t_shell *shell, int *i, int *words)
 		while (shell->input[++*i] != SQ && shell->input[*i])
 			;
 		if (shell->input[*i] == '\0')
-			return (0);
+			return (ft_putstr_fd("minishell: missing single quote\n", 1), 0);
 		if (shell->input[++*i] == '\0' || shell->input[*i] == PIPE
 			|| shell->input[*i] == '>' || shell->input[*i] == '<')
 			(*words)++;
@@ -39,7 +39,8 @@ int	check_quotes(t_shell *shell, int *i, int *words)
 
 int	pipe_checker(t_shell *shell, int i, int *words)
 {
-	if (shell->input[i + 1] != SPACE && shell->input[i - 1] != SPACE)
+	if (shell->input[i + 1] != SPACE && shell->input[i - 1] != SPACE
+		&& shell->input[i + 1] != TAB && shell->input[i - 1] != TAB)
 		(*words)++;
 	return (++i);
 }
@@ -49,7 +50,7 @@ int	check_space(t_shell *shell, int words, int (*i))
 	if (shell->input[(*i) - 1] != PIPE && shell->input[(*i) - 1] != '<'
 		&& shell->input[(*i) - 1] != '>')
 		words++;
-	while (shell->input[++(*i)] == SPACE)
+	while (shell->input[++(*i)] == SPACE || shell->input[*i] == TAB)
 		;
 	return (words);
 }
@@ -75,7 +76,7 @@ int	count_wrds(t_shell *shell)
 
 	words = 0;
 	i = 0;
-	while (shell->input[i] == SPACE)
+	while (shell->input[i] == SPACE || shell->input[i] == TAB)
 		i++;
 	while (shell->input[i] != '\0')
 	{
@@ -84,7 +85,7 @@ int	count_wrds(t_shell *shell)
 			if (!check_quotes(shell, &i, &words))
 				return (0);
 		}
-		else if (shell->input[i] == SPACE)
+		else if (shell->input[i] == SPACE || shell->input[i] == TAB)
 			words = check_space(shell, words, &i);
 		else if (shell->input[i] == '>' || shell->input[i] == '<'
 			|| shell->input[i] == PIPE)

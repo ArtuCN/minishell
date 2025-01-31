@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: ciusca <ciusca@student.42.fr>              +#+  +:+       +#+         #
+#    By: aconti <aconti@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/05/07 17:01:15 by ciusca            #+#    #+#              #
-#    Updated: 2024/05/23 18:14:22 by ciusca           ###   ########.fr        #
+#    Created: 2024/05/07 17:01:15 by aconti            #+#    #+#              #
+#    Updated: 2024/07/09 15:47:15 by aconti           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,11 +19,11 @@ HEADERS = headers/minishell.h
 
 PROTECTED_FUNC_SRC = protected_functions.c protected_functions2.c
 CLOSING_SRC = close_shell.c
-BUILT_IN_SRC = echo.c cd.c pwd.c export.c env.c
-EXECUTOR_SRC = exec.c
-EXPANDER_SRC = exp.c quotes_and_flag.c
-PARSER_SRC = parse_redirs.c ft_heredoc.c parsing_utils.c parsing.c tokenizer.c cmd_table.c find_redirs.c
-LEXER_SRC = readline.c lexer_checker.c word_creation.c count_words.c
+BUILT_IN_SRC = echo.c cd.c pwd.c export.c export_2.c export_3.c env.c exit.c unset.c
+EXECUTOR_SRC = normal_execution.c redirs_error.c validate_cmd.c check_valid.c exec.c exec_utils.c
+EXPANDER_SRC = check_token.c env_and_pid.c exp.c quotes_and_flag.c
+PARSER_SRC = history.c open_pipe.c open_parsing_utils.c open_parsing.c to_lex.c fill_fds.c find_utils.c heredoc_utils.c heredoc_utils2.c parse_redirs.c ft_heredoc.c parsing_utils.c parsing.c tokenizer.c cmd_table.c
+LEXER_SRC = split_redirs.c handle_quote_flag.c readline.c lexer_checker.c word_creation.c count_words.c
 UTILS_SRC = utils.c utils2.c
 SIGNAL_SRC = signals.c
 MAIN	= minishell.c
@@ -42,9 +42,10 @@ SRCS = $(addprefix src/, $(MAIN) $(CLOSING) $(SIGNAL) ${BUILT_IN} $(PROTECTED_FU
 
 OBJS = ${SRCS:.c=.o}
 
-SUPRRESSION = @valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=ingore_readline.supp -s ./minishell
+SUPP_FILE = ignore_readline.supp
+SUPRRESSION = @valgrind --suppressions=ignore_readline.supp -s ./minishell
 
-COMPILE = cc -Wall -Wextra -Werror -g 
+COMPILE = cc -Wall -Wextra -Werror -g -fno-omit-frame-pointer
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
@@ -53,7 +54,7 @@ BLUE = "\033[1;34m"
 MAGENTA = "\033[1;35m"
 CYAN = "\033[1;36m"
 WHITE = "\033[1;37m"
-NONE = '\033[0m'
+NONE = "\033[0m"
 
 all: ${NAME}
 %.o: %.c
@@ -70,12 +71,22 @@ ${NAME}: ${OBJS} ${HEADERS}
 		@echo $(BLUE)   " |_|  |_|_____|_| \_|_____|_____/|_|  |_|______|______|______| " $(NONE)
 		@echo $(WHITE)  "                                                               " $(NONE)
 
-sup: all
-		@valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=ignore_readline.supp -s ./minishell
+sup: $(SUPP_FILE) all
+	echo "{\n    readline_leak\n    \
+	Memcheck:Leak\n    \
+	match-leak-kinds: reachable\n    ...\n    \
+	fun:readline\n    ...\n}"\
+	 > ignore_readline.supp
+	echo "{\n   readlin_leak\n   \
+	Memcheck:Leak\n   \
+	match-leak-kinds: reachable\n   ...\n   \
+	fun:add_history\n   ...\n}" >> ignore_readline.supp
+	$(SUPRRESSION)
+
 clean:
-		@rm -rf $(OBJS)
-		@make -C $(LIBFT_PATH) clean
-		@echo $(GREEN)"Successfully cleaned!" $(NONE)
+		rm -rf $(OBJS)
+		make -C $(LIBFT_PATH) clean
+		echo $(GREEN)"Successfully cleaned!" $(NONE)
 
 fclean: clean
 		@rm -rf $(NAME)

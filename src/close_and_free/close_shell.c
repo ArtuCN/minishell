@@ -3,14 +3,30 @@
 /*                                                        :::      ::::::::   */
 /*   close_shell.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ciusca <ciusca@student.42.fr>              +#+  +:+       +#+        */
+/*   By: aconti <aconti@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/05/08 10:32:57 by ciusca            #+#    #+#             */
-/*   Updated: 2024/05/22 18:08:55 by ciusca           ###   ########.fr       */
+/*   Created: 2024/05/08 10:32:57 by aconti            #+#    #+#             */
+/*   Updated: 2024/07/09 15:47:15 by aconti           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../headers/minishell.h"
+
+void	free_cmd(t_table *table)
+{
+	if (table->cmd->cmd_arg)
+	{
+		free_matrix(table->cmd->cmd_arg);
+		table->cmd->cmd_arg = 0;
+	}
+	if (table->cmd->pathname)
+	{
+		free(table->cmd->pathname);
+		table->cmd->pathname = 0;
+	}
+	free(table->cmd);
+	table->cmd = 0;
+}
 
 void	free_cmd_table(t_shell *shell)
 {
@@ -23,11 +39,14 @@ void	free_cmd_table(t_shell *shell)
 		while (++i < shell->len)
 		{
 			table = &shell->cmd_table[i];
-			if (table->cmd)
+			if (table->redirs)
 			{
-				free(table->cmd);
-				table->cmd = 0;
+				free_matrix(table->redirs);
+				table->redirs = 0;
+				free(table->fd);
 			}
+			if (table->cmd)
+				free_cmd(table);
 		}
 	}
 	free(shell->cmd_table);
@@ -79,5 +98,8 @@ void	close_shell(t_shell *shell)
 		free(garbage);
 		garbage = temp;
 	}
+	if (shell->cmd_table)
+		free_cmd_table(shell);
+	close(0);
 	exit(shell->error);
 }

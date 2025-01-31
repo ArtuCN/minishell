@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parsing.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ciusca <ciusca@student.42.fr>              +#+  +:+       +#+        */
+/*   By: aconti <aconti@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/04/27 16:54:36 by nromito           #+#    #+#             */
-/*   Updated: 2024/05/27 16:02:25 by ciusca           ###   ########.fr       */
+/*   Created: 2024/04/27 16:54:36 by adonato           #+#    #+#             */
+/*   Updated: 2024/07/09 15:48:31 by aconti           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,6 @@ int	split_pipes(t_shell *shell)
 	found = 0;
 	token = shell->tokens;
 	temp_token = ft_strdup(token->tokens);
-	i = -1;
 	temp_token = set_x(temp_token);
 	i = -1;
 	while (temp_token[++i])
@@ -68,10 +67,7 @@ int	split_pipes(t_shell *shell)
 		if (temp_token[i] == 'P')
 			found = 0;
 		if (temp_token[i] == 'S' && !found)
-		{
-			free(temp_token);
-			return (ft_error(shell, COMMAND, token->index[i]));
-		}
+			return (free(temp_token), ft_error(shell, 0, token->index[i]));
 	}
 	free(temp_token);
 	return (1);
@@ -93,20 +89,26 @@ int	parse_input(t_shell *shell)
 			if (token->tokens[i + 1] == 'P')
 				return (ft_error(shell, SYNTAX, token->index[i + 1]));
 			else if (!token->tokens[i + 1])
-				return (ft_error(shell, SYNTAX, "\\n"));
+				return (ft_error(shell, SYNTAX, "newline"));
 			else if (is_redir(token->tokens[i + 1]))
 				return (ft_error(shell, SYNTAX, token->index[i + 1]));
 		}
 		else if (token->tokens[i] == 'P' && token->tokens[i + 1] == 'P')
 			return (ft_error(shell, SYNTAX, token->index[i + 1]));
 	}
-	if (!parse_redirs(shell))
+	if (!find_redirs(shell))
 		return (0);
-	return (split_pipes(shell));
+	return (1);
 }
 
-int	parsing(t_shell *shell)
+int	parsing(t_shell *shell, int saved_in)
 {
+	shell->len = 0;
+	if (to_lex(shell))
+	{
+		close(saved_in);
+		lexer(shell);
+	}
 	if (!tokenizer(shell))
 		return (0);
 	if (!parse_input(shell))
